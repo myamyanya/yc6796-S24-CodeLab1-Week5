@@ -47,9 +47,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   score: 0
   display: {fileID: 6063020514376690122}
-  name: {fileID: 5730726741479294604}
+  inputName: {fileID: 5730726741479294604}
   nameSlotText: {fileID: 4055675316374606416}
   submit: {fileID: 8308940763493272468}
+  playerName: Anonymous
   masTime: 5
 --- !u!1 &2053351415056213008
 GameObject:

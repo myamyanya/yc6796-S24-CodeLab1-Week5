@@ -6,6 +6,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -16,7 +17,7 @@ public class GameManager : MonoBehaviour
     private const string DATA_FILE = "highScores.txt";
     private string FILE_FULL_PATH;
     
-    public int score;
+    private int score;
 
     public int Score
     {
@@ -33,6 +34,7 @@ public class GameManager : MonoBehaviour
     private string highScoresString = "";
 
     private List<int> highScores;
+    private List<string> names;
 
     public List<int> HighScores
     {
@@ -43,6 +45,7 @@ public class GameManager : MonoBehaviour
                 Debug.Log("Pulling highscores from file...");
                 
                 highScores = new List<int>();
+                names = new List<string>();
                 
                 // Reading data from the file
                 highScoresString = File.ReadAllText(FILE_FULL_PATH);
@@ -53,22 +56,37 @@ public class GameManager : MonoBehaviour
                 // Make a temporary array to store the split-ed high scores
                 // Each number before the \n will be hold in a slot
                 string[] highScoreArray = highScoresString.Split("\n");
+                
                 for (int i = 0; i < highScoreArray.Length; i++)
                 {
-                    int currentHighScore = Int32.Parse(highScoreArray[i]);
+                    string[] nameAndScore = highScoreArray[i].Split(",");
+
+                    string currentPlayerName = nameAndScore[0];
+                    names.Add(currentPlayerName);
+                    
+                    int currentHighScore = Int32.Parse(nameAndScore[1]);
                     highScores.Add(currentHighScore);
                 }
             }
             else if (highScores == null)
             {
                 Debug.Log("No highscore found");
+                
                 highScores = new List<int>();
+                names = new List<string>();
                 
                 // Add some data to the list as starting point
                 highScores.Add(0);
                 highScores.Insert(0, 3);
                 highScores.Insert(1, 2);
                 highScores.Insert(2, 1);
+                highScores.Insert(3, 0);
+                
+                names.Insert(0, "Anonymous");
+                names.Insert(1, "Anonymous");
+                names.Insert(2, "Anonymous");
+                names.Insert(3, "Anonymous");
+                names.Insert(4, "Anonymous");
             }
 
             return highScores;
@@ -80,7 +98,7 @@ public class GameManager : MonoBehaviour
     }
 
     public TextMeshProUGUI display;
-    public TextMeshProUGUI name;
+    public TextMeshProUGUI inputName;
     public TextMeshProUGUI nameSlotText;
     
     // Submit button
@@ -182,13 +200,18 @@ public class GameManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "Begin")
         {
             SceneManager.LoadScene("Level1");
+
+            playerName = inputName.text;
+            inputName.enabled = false;
+            
+            Debug.Log(playerName);
         }
         
-        Debug.Log("Submitting...");
+        //Debug.Log("Submitting...");
         isStarted = true;
         
         // Invisible the name input staff
-        name.transform.parent.transform.parent.GetComponent<Image>().enabled = false;
+        inputName.transform.parent.transform.parent.GetComponent<Image>().enabled = false;
         nameSlotText.text = "";
 
         submit.GetComponent<Image>().enabled = false;
@@ -216,16 +239,22 @@ public class GameManager : MonoBehaviour
                 
             // Insert the new highscore to this slot
             highScores.Insert(highScoreSlot, score);
+            names.Insert(highScoreSlot, playerName);
 
             // Just take the first 5 high scores
             highScores = highScores.GetRange(0, 5);
+            names = names.GetRange(0, 5);
 
             string scoreBoardText = "";
 
             // Go through every slot in the highScores list
-            foreach (var highScore in highScores)
+            /*foreach (var highScore in highScores)
             {
-                scoreBoardText += highScore + "\n";
+                scoreBoardText += playerName + "," + highScore + "\n";
+            }*/
+            for (int i = 0; i < highScores.Count; i++)
+            {
+                scoreBoardText += names[i] + "," + highScores[i] + "\n";
             }
 
             highScoresString = scoreBoardText;
