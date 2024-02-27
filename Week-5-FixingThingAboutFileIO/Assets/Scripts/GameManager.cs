@@ -27,39 +27,6 @@ public class GameManager : MonoBehaviour
         set
         {
             score = value;
-
-            // Check if there's a highscore generated
-            if (isHighScore(score))
-            {
-                int highScoreSlot = -1;
-                
-                // Locating the position of the slot
-                for (int i = 0; i < HighScores.Count; i++)
-                {
-                    highScoreSlot = i;
-                    
-                    // Cut the loop
-                    break;
-                }
-                
-                // Insert the new highscore to this slot
-                highScores.Insert(highScoreSlot, score);
-
-                // Just take the first 5 high scores
-                highScores = highScores.GetRange(0, 5);
-
-                string scoreBoardText = "";
-
-                // Go through every slot in the highScores list
-                foreach (var highScore in highScores)
-                {
-                    scoreBoardText += highScore + "\n";
-                }
-
-                highScoresString = scoreBoardText;
-                
-                File.WriteAllText(FILE_FULL_PATH, highScoresString);
-            }
         }
     }
 
@@ -71,16 +38,12 @@ public class GameManager : MonoBehaviour
     {
         get
         {
-            if (highScores == null)
+            if (highScores == null && File.Exists(FILE_FULL_PATH))
             {
+                Debug.Log("Pulling highscores from file...");
+                
                 highScores = new List<int>();
                 
-                /*// Add some data to the list as starting point
-                highScores.Add(0);
-                highScores.Insert(0, 3);
-                highScores.Insert(1, 2);
-                highScores.Insert(2, 1);*/
-
                 // Reading data from the file
                 highScoresString = File.ReadAllText(FILE_FULL_PATH);
 
@@ -95,6 +58,17 @@ public class GameManager : MonoBehaviour
                     int currentHighScore = Int32.Parse(highScoreArray[i]);
                     highScores.Add(currentHighScore);
                 }
+            }
+            else if (highScores == null)
+            {
+                Debug.Log("No highscore found");
+                highScores = new List<int>();
+                
+                // Add some data to the list as starting point
+                highScores.Add(0);
+                highScores.Insert(0, 3);
+                highScores.Insert(1, 2);
+                highScores.Insert(2, 1);
             }
 
             return highScores;
@@ -111,6 +85,9 @@ public class GameManager : MonoBehaviour
     
     // Submit button
     public Button submit;
+    
+    // For storing the name
+    public String playerName = "Anonymous";
 
     private float timer = 0;
     public int masTime = 5;
@@ -176,6 +153,14 @@ public class GameManager : MonoBehaviour
         {
             isInGame = false;
             SceneManager.LoadScene("End");
+            SetHighScore();
+        }
+        
+        // For level debugging
+        if (SceneManager.GetActiveScene().name == "Level1")
+        {
+            Debug.Log("Hide player input");
+            NameSubmitted();
         }
     }
 
@@ -194,6 +179,11 @@ public class GameManager : MonoBehaviour
 
     void NameSubmitted()
     {
+        if (SceneManager.GetActiveScene().name == "Begin")
+        {
+            SceneManager.LoadScene("Level1");
+        }
+        
         Debug.Log("Submitting...");
         isStarted = true;
         
@@ -203,5 +193,44 @@ public class GameManager : MonoBehaviour
 
         submit.GetComponent<Image>().enabled = false;
         submit.GetComponentInChildren<TextMeshProUGUI>().text = "";
+    }
+
+    void SetHighScore()
+    {
+        // Check if there's a highscore generated
+        if (isHighScore(score))
+        {
+            int highScoreSlot = -1;
+                
+            // Locating the position of the slot
+            for (int i = 0; i < HighScores.Count; i++)
+            {
+                if (score > highScores[i])
+                {
+                    highScoreSlot = i;
+                    
+                    // Cut the loop
+                    break;
+                }
+            }
+                
+            // Insert the new highscore to this slot
+            highScores.Insert(highScoreSlot, score);
+
+            // Just take the first 5 high scores
+            highScores = highScores.GetRange(0, 5);
+
+            string scoreBoardText = "";
+
+            // Go through every slot in the highScores list
+            foreach (var highScore in highScores)
+            {
+                scoreBoardText += highScore + "\n";
+            }
+
+            highScoresString = scoreBoardText;
+                
+            File.WriteAllText(FILE_FULL_PATH, highScoresString);
+        }
     }
 }
